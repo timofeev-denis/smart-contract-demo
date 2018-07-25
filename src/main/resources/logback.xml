@@ -8,7 +8,7 @@
     </appender>
 
     <!-- Change to DEBUG log protocol messages -->
-    <logger name="org.web3j.protocol" level="INFO"/>
+    <logger name="org.web3j.protocol" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

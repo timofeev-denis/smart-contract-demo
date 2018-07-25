@@ -14,9 +14,8 @@ import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
-import static org.web3j.utils.Convert.Unit.KWEI;
+import static org.web3j.utils.Convert.Unit.GWEI;
 
 /**
  * A simple web3j application that demonstrates a number of core features of web3j:
@@ -66,7 +65,7 @@ public class MyApplication {
         Credentials credentials =
                 WalletUtils.loadCredentials(
                         "1q2w#E$R",
-                        "/home/denis/.ethereum/testnet/keystore/UTC--2018-07-17T06-16-09.303000000Z--0b7d579b3b0927800a3d967108006f8e8c2b3ffa.json");
+                        "/home/denis/.ethereum/rinkeby/keystore/UTC--2018-07-15T14-29-16.262544014Z--93fcb1de0a0fef8528950043c3459641146203d3");
         log.info("Credentials loaded");
 
         // Now lets deploy a smart contract
@@ -79,17 +78,20 @@ public class MyApplication {
         String contractAddress = "0xdCAB085368563516222740A336b29A6Ea998237E";
         AuthorizedContract contract = AuthorizedContract.load(contractAddress, web3j, credentials,
                 ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
-        log.info("Smart contract deployed to address " + contractAddress);
+        log.info("Smart contract address " + contractAddress);
         log.info("View contract at https://rinkeby.etherscan.io/address/" + contractAddress);
 
-        contract.setGasPrice(BigInteger.valueOf(300000L));
-        contract.setGasPrice(BigInteger.valueOf(300000L));
-        log.info("Add (authorize) new Ethereum wallet:" + contract.addAddress("0x0B7d579b3b0927800a3D967108006F8e8C2B3FfA").send());
+//        contract.setGasPrice(BigInteger.valueOf(30000000L));
+
+//        log.info("Authorizing Ethereum wallet...");
+//        contract.addAddress("0x93fcb1de0a0fef8528950043c3459641146203d3").send();
+//        log.info("Done!");
 
         // Send some wei to the contract
-        log.info("Sending 32 GWei (" + Convert.fromWei("32", Convert.Unit.ETHER).toPlainString() + " to contract");
-        TransactionReceipt transferReceipt = Transfer
-                .sendFunds(web3j, credentials, contractAddress, BigDecimal.valueOf(32), KWEI)
+        log.info("Sending 32000 GWei (" + Convert.fromWei("32000000000000", Convert.Unit.ETHER).toPlainString() + " to contract");
+
+        TransactionReceipt transferReceipt = Transfer.sendFunds(
+                web3j, credentials, contractAddress, BigDecimal.valueOf(32000), GWEI)
                 .send();
         log.info("Transaction complete, view it at https://rinkeby.etherscan.io/tx/"
                 + transferReceipt.getTransactionHash());
