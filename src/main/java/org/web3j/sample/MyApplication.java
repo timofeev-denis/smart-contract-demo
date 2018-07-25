@@ -1,21 +1,22 @@
 package org.web3j.sample;
 
-import java.math.BigDecimal;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.sample.contracts.generated.Greeter;
+import org.web3j.sample.contracts.generated.AuthorizedContract;
 import org.web3j.tx.Contract;
 import org.web3j.tx.ManagedTransaction;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
-import org.web3j.utils.Numeric;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+import static org.web3j.utils.Convert.Unit.KWEI;
 
 /**
  * A simple web3j application that demonstrates a number of core features of web3j:
@@ -43,15 +44,15 @@ import org.web3j.utils.Numeric;
  *
  * <p>For further background information, refer to the project README.
  */
-public class Application {
-/*
-    private static final Logger log = LoggerFactory.getLogger(Application.class);
+public class MyApplication {
+
+    private static final Logger log = LoggerFactory.getLogger(MyApplication.class);
     private String gatewayUrl = "https://rinkeby.infura.io/VIhu8Q3dA5fy5NbxDLjR";
 //    private String gatewayUrl = "http://localhost:7545";
 
 
     public static void main(String[] args) throws Exception {
-        new Application().run();
+        new MyApplication().run();
     }
 
     private void run() throws Exception {
@@ -62,52 +63,52 @@ public class Application {
         log.info("Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
 
         // We then need to load our Ethereum wallet file
-        // FIXME: Generate a new wallet file using the web3j command line tools https://docs.web3j.io/command_line.html
         Credentials credentials =
                 WalletUtils.loadCredentials(
                         "1q2w#E$R",
                         "/home/denis/.ethereum/testnet/keystore/UTC--2018-07-17T06-16-09.303000000Z--0b7d579b3b0927800a3d967108006f8e8c2b3ffa.json");
         log.info("Credentials loaded");
 
-        // FIXME: Request some Ether for the Rinkeby test network at https://www.rinkeby.io/#faucet
-        log.info("Sending 1 Wei ("
-                + Convert.fromWei("1", Convert.Unit.ETHER).toPlainString() + " Ether)");
-        TransactionReceipt transferReceipt = Transfer.sendFunds(
-                web3j, credentials,
-                "0x3663e7c1d701df776d994de458c0413582c7e925",  // you can put any address here
-                BigDecimal.valueOf(32), Convert.Unit.GWEI)  // 1 wei = 10^-18 Ether
+        // Now lets deploy a smart contract
+//        log.info("Deploying smart contract");
+//        AuthorizedContract contract = AuthorizedContract.deploy(
+//                web3j, credentials,
+//                ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT).send();
+//
+//        String contractAddress = contract.getContractAddress();
+        String contractAddress = "0xdCAB085368563516222740A336b29A6Ea998237E";
+        AuthorizedContract contract = AuthorizedContract.load(contractAddress, web3j, credentials,
+                ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
+        log.info("Smart contract deployed to address " + contractAddress);
+        log.info("View contract at https://rinkeby.etherscan.io/address/" + contractAddress);
+
+        contract.setGasPrice(BigInteger.valueOf(300000L));
+        contract.setGasPrice(BigInteger.valueOf(300000L));
+        log.info("Add (authorize) new Ethereum wallet:" + contract.addAddress("0x0B7d579b3b0927800a3D967108006F8e8C2B3FfA").send());
+
+        // Send some wei to the contract
+        log.info("Sending 32 GWei (" + Convert.fromWei("32", Convert.Unit.ETHER).toPlainString() + " to contract");
+        TransactionReceipt transferReceipt = Transfer
+                .sendFunds(web3j, credentials, contractAddress, BigDecimal.valueOf(32), KWEI)
                 .send();
         log.info("Transaction complete, view it at https://rinkeby.etherscan.io/tx/"
                 + transferReceipt.getTransactionHash());
 
-        // Now lets deploy a smart contract
-        log.info("Deploying smart contract");
-        Greeter contract = Greeter.deploy(
-                web3j, credentials,
-                ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT,
-                "Hello blockchain world!").send();
+//         Lets modify the value in our smart contract
+//        TransactionReceipt transactionReceipt = contract..newGreeting("Well hello again").send();
 
-        String contractAddress = contract.getContractAddress();
-        log.info("Smart contract deployed to address " + contractAddress);
-        log.info("View contract at https://rinkeby.etherscan.io/address/" + contractAddress);
-
-        log.info("Value stored in remote smart contract: " + contract.greet().send());
-
-        // Lets modify the value in our smart contract
-        TransactionReceipt transactionReceipt = contract.newGreeting("Well hello again").send();
-
-        log.info("New value stored in remote smart contract: " + contract.greet().send());
+//        log.info("New value stored in remote smart contract: " + contract.greet().send());
 
         // Events enable us to log specific events happening during the execution of our smart
         // contract to the blockchain. Index events cannot be logged in their entirety.
         // For Strings and arrays, the hash of values is provided, not the original value.
         // For further information, refer to https://docs.web3j.io/filters.html#filters-and-events
-        for (Greeter.ModifiedEventResponse event : contract.getModifiedEvents(transactionReceipt)) {
-            log.info("Modify event fired, previous value: " + event.oldGreeting
-                    + ", new value: " + event.newGreeting);
-            log.info("Indexed event previous value: " + Numeric.toHexString(event.oldGreetingIdx)
-                    + ", new value: " + Numeric.toHexString(event.newGreetingIdx));
-        }
+
+//        for (Greeter.ModifiedEventResponse event : contract.getModifiedEvents(transactionReceipt)) {
+//            log.info("Modify event fired, previous value: " + event.oldGreeting
+//                    + ", new value: " + event.newGreeting);
+//            log.info("Indexed event previous value: " + Numeric.toHexString(event.oldGreetingIdx)
+//                    + ", new value: " + Numeric.toHexString(event.newGreetingIdx));
+//        }
     }
-*/
 }
